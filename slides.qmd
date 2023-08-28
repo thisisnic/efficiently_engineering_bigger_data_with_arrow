@@ -1,0 +1,247 @@
+---
+title: "Efficiently Engineering Bigger Data with Arrow"
+author: "Nic Crane"
+format: revealjs
+---
+
+# Efficiently Engineering Bigger Data with Arrow
+
+-   Working with larger-than-memory data in R with Arrow
+-   Using Parquet format for better performance
+-   Dataset partitioning
+
+## What is larger-than-memory data?
+
+![Source: July 2023 data from https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-to-Steam](images/larger-than-memory.png){.absolute left="200"}
+
+## NYC Taxi Dataset
+
+![](images/nyc-taxi-homepage.png){.absolute left="200" width="600"}
+
+::: {style="font-size: 60%; margin-top: 550px; margin-left: 200px;"}
+<https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page>
+:::
+
+## Demo 1
+
+(Nic to demo!)
+
+## NYC Taxi Data
+
+-   *big* NYC Taxi data set (\~40GBs on disk)
+
+```{r}
+#| label: get-big-data
+#| eval: false
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi") |>
+  filter(year %in% 2012:2021) |>
+  write_dataset("data/nyc-taxi", partitioning = c("year", "month"))
+```
+
+## NYC Taxi Dataset
+
+```{r}
+#| label: first-taxi-data
+library(arrow)
+nyc_taxi <- open_dataset("~/data/nyc-taxi/")
+
+nyc_taxi |> 
+  nrow()
+```
+
+<br>
+
+1.15 billion rows 🤯
+
+## NYC Taxi Dataset: A {dplyr} pipeline
+
+```{r}
+#| label: first-collect
+library(dplyr)
+
+nyc_taxi |>
+  filter(year %in% 2014:2017) |>
+  group_by(year) |>
+  summarise(
+    all_trips = n(),
+    shared_trips = sum(passenger_count > 1, na.rm = TRUE)
+  ) |>
+  mutate(pct_shared = shared_trips / all_trips * 100) |>
+  collect()
+```
+
+## NYC Taxi Dataset: A {dplyr} pipeline
+
+```{r}
+#| label: first-timing
+#| code-line-numbers: "11,12"
+library(dplyr)
+
+nyc_taxi |>
+  filter(year %in% 2014:2017) |>
+  group_by(year) |>
+  summarise(
+    all_trips = n(),
+    shared_trips = sum(passenger_count > 1, na.rm = TRUE)
+  ) |>
+  mutate(pct_shared = shared_trips / all_trips * 100) |>
+  collect() |> 
+  system.time()
+```
+
+## What is Apache Arrow?
+
+::: columns
+::: {.column width="50%"}
+> A multi-language toolbox for accelerated data interchange and in-memory processing
+:::
+
+::: {.column width="50%"}
+> Arrow is designed to both improve the performance of analytical algorithms and the efficiency of moving data from one system or programming language to another
+:::
+:::
+
+::: {style="font-size: 70%;"}
+<https://arrow.apache.org/overview/>
+:::
+
+## Apache Arrow Specification
+
+In-memory columnar format: a standardized, language-agnostic specification for representing structured, table-like data sets in-memory.
+
+<br>
+
+![](images/arrow-rectangle.png){.absolute left="200"}
+
+## A Multi-Language Toolbox
+
+![](images/arrow-libraries-structure.png)
+
+## Accelerated Data Interchange
+
+![](images/data-interchange-with-arrow.png)
+
+## Accelerated In-Memory Processing
+
+Arrow's Columnar Format is Fast
+
+![](images/columnar-fast.png){.absolute top="120" left="200" height="600"}
+
+::: notes
+The contiguous columnar layout enables vectorization using the latest SIMD (Single Instruction, Multiple Data) operations included in modern processors.
+:::
+
+## arrow 📦
+
+<br>
+
+![](images/arrow-r-pkg.png){.absolute top="0" left="300" width="700" height="900"}
+
+## arrow 📦
+
+![](images/arrow-read-write-updated.png)
+
+## Arrow Datasets
+
+-   Similar to database connections
+-   Can consist of multiple files
+-   Lazy evaluation
+
+# Parquet
+
+## Parquet
+
+-   usually smaller than equivalent CSV file
+-   rich type system & stores the data type along with the data
+-   "column-oriented" == better performance over CSV's row-by-row
+-   "row-chunked" == work on different parts of the file at the same time or skip some chunks all together
+
+::: notes
+-   efficient encodings to keep file size down, and supports file compression, less data to move from disk to memory
+-   CSV has no info about data types, inferred by each parser
+:::
+
+## Parquet Files: "row-chunked"
+
+![](images/parquet-chunking.png)
+
+## Parquet Files: "row-chunked & column-oriented"
+
+![](images/parquet-columnar.png)
+
+## Demo 2
+
+(Nic to demo)
+
+# Partitioning
+
+## Art & Science of Partitioning
+
+-   Number of partitions also important (Arrow reads the metadata of each file)
+-   avoid files \< 20MB and \> 2GB
+-   avoid \> 10,000 files (🤯)
+-   partition on variables used in `filter()`
+
+## Demo 3 (Nic to demo)
+
+# Summary
+
+1.  Arrow lets you work with larger-than-memory data directly from R
+2.  Store files in Parquet format for better performance
+3.  Partition data based on your analysis workflows
+
+```{=html}
+<!-- Need to add in all of Danielle's acknowledgements
+
+
+
+[![Image from "Larger-Than-Memory Data Workflows with Apache Arrow" by Danielle Navarro is licensed under CC BY-ND 4.0](https://github.com/djnavarro/arrow-user2022/blob/main/img/arrow-libraries-structure.png?raw=true)](https://arrow-user2022.netlify.app/)
+
+## The arrow R package
+
+[![Image from "Larger-Than-Memory Data Workflows with Apache Arrow" by Danielle Navarro is licensed under CC BY-ND 4.0](https://github.com/djnavarro/arrow-user2022/blob/main/img/dplyr-backend.png?raw=true)](https://arrow-user2022.netlify.app/)
+
+-->
+```
+## Demo 2
+
+# Resources
+
+## Docs
+
+[![https://arrow.apache.org/docs/r/](images/docs.png)](https://arrow.apache.org/docs/r/)
+
+## Cookbook
+
+[![https://arrow.apache.org/cookbook/r/](images/cookbook.png)](https://arrow.apache.org/cookbook/r/)
+
+## Cheatsheet
+
+[![https://github.com/apache/arrow/blob/main/r/cheatsheet/arrow-cheatsheet.pdf](https://arrow.apache.org/img/20220427-arrow-r-cheatsheet-thumbnail.png)](https://github.com/apache/arrow/blob/master/r/cheatsheet/arrow-cheatsheet.pdf)
+
+```{=html}
+<!-- 
+The Arrow for R cheatsheet is intended to be an easy-to-scan introduction to the Arrow R package and Arrow data structures, with getting started sections on some of the package’s main functionality. The cheatsheet includes introductory snippets on using Arrow to read and work with larger-than-memory multi-file data sets, sending and receiving data with Flight, reading data from cloud storage without downloading the data first, and more. The Arrow for R cheatsheet also directs users to the full Arrow for R package documentation and articles and the Arrow Cookbook, both full of code examples and recipes to support users build their Arrow-based data workflows. Finally, the cheatsheet debuts one of the first uses of the hot-off-the-presses Arrow hex sticker, recently made available as part of the Apache Arrow visual identity guidance.
+-->
+```
+## UseR! 2022 Tutorial
+
+[![https://arrow-user2022.netlify.app/](images/usertutorial.png)](https://arrow-user2022.netlify.app/)
+
+<!-- Also mention mini taxi dataset -->
+
+## Awesome Arrow
+
+[![https://github.com/thisisnic/awesome-arrow-r](images/awesomearrow.png)](https://github.com/thisisnic/awesome-arrow-r)
+
+# Get Involved!
+
+## Open an issue
+
+[![https://github.com/apache/arrow/issues/](images/issues.png)](https://github.com/apache/arrow/issues/)
+
+## Make a PR!
+
+-   docs
+-   cookbook
+-   code
