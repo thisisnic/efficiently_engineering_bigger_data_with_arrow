@@ -135,7 +135,7 @@ The contiguous columnar layout enables vectorization using the latest SIMD (Sing
 
 ## dplyr API in arrow
 
-![](images/dplyr-backend.png)
+![(Danielle Navarro, 2022 - https://arrow-user2022.netlify.app). CC BY-SA 4.0](images/dplyr-backend.png)
 
 ## Arrow Datasets
 
@@ -321,7 +321,7 @@ fare_by_year |>
 -   CSV has no info about data types, inferred by each parser
 :::
 
-## Demo 2
+## Let's compare!
 
 ```{r}
 #| label: write_dataset
@@ -344,7 +344,7 @@ total_file_size <- function(path){
 }
 ```
 
-How much space do the CSV and Parquet versions of the same files take up on disk?
+## How much space do the CSV and Parquet versions of the same files take up on disk?
 
 ```{r}
 #| label: parquet_size
@@ -403,7 +403,7 @@ toc()
 
 ## Parquet file metadata
 
-![](images/parquet_metadata.gif)
+![Source: https://parquet.apache.org/docs/file-format/metadata/](images/parquet_metadata.gif)
 
 # Partitioning
 
@@ -466,12 +466,6 @@ tic()
 toc()
 ```
 > 5.621 sec elapsed
-
-## Demo 3 (Nic to demo)
-
-```{r}
-
-```
 
 ## Art & Science of Partitioning
 
@@ -540,3 +534,5 @@ The Arrow for R cheatsheet is intended to be an easy-to-scan introduction to the
 -   docs
 -   cookbook
 -   code
+
+# Efficiently Engineering Bigger Data with Arrow

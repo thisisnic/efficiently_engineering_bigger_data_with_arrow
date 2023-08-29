@@ -527,7 +527,7 @@ Nic Crane
 <section id="dplyr-api-in-arrow" class="slide level2">
 <h2>dplyr API in arrow</h2>
 
-<img data-src="images/dplyr-backend.png" class="r-stretch"></section>
+<img data-src="images/dplyr-backend.png" class="r-stretch quarto-figure-center"><p class="caption">(Danielle Navarro, 2022 - https://arrow-user2022.netlify.app). CC BY-SA 4.0</p></section>
 <section id="arrow-datasets" class="slide level2">
 <h2>Arrow Datasets</h2>
 <ul>
@@ -674,8 +674,8 @@ month: int32</code></pre>
   pickup_datetime      year trip_distance
   &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;
 1 2021-10-02 15:04:53  2021          188.
-2 2021-01-03 09:01:26  2021          216.
-3 2021-01-03 11:36:52  2021          268.</code></pre>
+2 2021-10-03 16:45:02  2021          134 
+3 2021-10-03 17:29:35  2021          218.</code></pre>
 </div>
 </div>
 </section>
@@ -689,9 +689,9 @@ month: int32</code></pre>
 <pre><code># A tibble: 3 × 3
   pickup_datetime      year trip_distance
   &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;
-1 2021-10-03 16:45:02  2021          134 
-2 2021-10-03 17:29:35  2021          218.
-3 2021-10-03 17:58:15  2021          225.</code></pre>
+1 2021-01-03 09:01:26  2021          216.
+2 2021-01-03 11:36:52  2021          268.
+3 2021-10-02 15:04:53  2021          188.</code></pre>
 </div>
 </div>
 </section></section>
@@ -801,8 +801,8 @@ Call collect() first to pull data into R.</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="demo-2" class="slide level2">
-<h2>Demo 2</h2>
+<section id="lets-compare" class="slide level2">
+<h2>Let’s compare!</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>nyc_taxi <span class="sc">|&gt;</span></span>
 <span id="cb27-2"><a href="#cb27-2"></a>  <span class="fu">write_dataset</span>(</span>
@@ -820,7 +820,9 @@ Call collect() first to pull data into R.</code></pre>
 <span id="cb28-3"><a href="#cb28-3"></a>  <span class="fu">sum</span>(fs<span class="sc">::</span><span class="fu">file_size</span>(all_files_in_dir))</span>
 <span id="cb28-4"><a href="#cb28-4"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>How much space do the CSV and Parquet versions of the same files take up on disk?</p>
+</section>
+<section id="how-much-space-do-the-csv-and-parquet-versions-of-the-same-files-take-up-on-disk" class="slide level2">
+<h2>How much space do the CSV and Parquet versions of the same files take up on disk?</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a><span class="co"># Parquet files</span></span>
 <span id="cb29-2"><a href="#cb29-2"></a><span class="fu">total_file_size</span>(<span class="st">"~/data/nyc-taxi/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -879,7 +881,7 @@ Call collect() first to pull data into R.</code></pre>
 <section id="parquet-file-metadata" class="slide level2">
 <h2>Parquet file metadata</h2>
 
-<img data-src="images/parquet_metadata.gif" class="r-stretch"></section></section>
+<img data-src="images/parquet_metadata.gif" class="r-stretch quarto-figure-center"><p class="caption">Source: https://parquet.apache.org/docs/file-format/metadata/</p></section></section>
 <section>
 <section id="partitioning" class="title-slide slide level1 center">
 <h1>Partitioning</h1>
@@ -1199,9 +1201,6 @@ Call collect() first to pull data into R.</code></pre>
 <p>5.621 sec elapsed</p>
 </blockquote>
 </section>
-<section id="demo-3-nic-to-demo" class="slide level2">
-<h2>Demo 3 (Nic to demo)</h2>
-</section>
 <section id="art-science-of-partitioning" class="slide level2">
 <h2>Art &amp; Science of Partitioning</h2>
 <ul>
@@ -1276,10 +1275,13 @@ The Arrow for R cheatsheet is intended to be an easy-to-scan introduction to the
 <li>cookbook</li>
 <li>code</li>
 </ul>
+</section></section>
+<section id="efficiently-engineering-bigger-data-with-arrow" class="title-slide slide level1 center">
+<h1>Efficiently Engineering Bigger Data with Arrow</h1>
 <div class="footer footer-default">
 
 </div>
-</section></section>
+</section>
     </div>
   </div>
 
