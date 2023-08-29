@@ -674,8 +674,8 @@ month: int32</code></pre>
   pickup_datetime      year trip_distance
   &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;
 1 2021-10-02 15:04:53  2021          188.
-2 2021-10-03 16:45:02  2021          134 
-3 2021-10-03 17:29:35  2021          218.</code></pre>
+2 2021-01-03 09:01:26  2021          216.
+3 2021-01-03 11:36:52  2021          268.</code></pre>
 </div>
 </div>
 </section>
@@ -689,9 +689,9 @@ month: int32</code></pre>
 <pre><code># A tibble: 3 × 3
   pickup_datetime      year trip_distance
   &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;
-1 2021-01-03 09:01:26  2021          216.
-2 2021-01-03 11:36:52  2021          268.
-3 2021-10-02 15:04:53  2021          188.</code></pre>
+1 2021-10-02 15:04:53  2021          188.
+2 2021-10-03 16:45:02  2021          134 
+3 2021-10-03 17:29:35  2021          218.</code></pre>
 </div>
 </div>
 </section></section>
@@ -739,6 +739,10 @@ Call collect() first to pull data into R.</code></pre>
 </div>
 </div>
 </section>
+<section id="duckdb" class="slide level2">
+<h2>DuckDB</h2>
+
+<img data-src="images/dplyr-arrow-duckdb.png" class="r-stretch"></section>
 <section id="window-functions---via-duckdb" class="slide level2">
 <h2>Window functions - via duckdb</h2>
 <!-- -->
@@ -886,297 +890,37 @@ Call collect() first to pull data into R.</code></pre>
 <section id="partitioning" class="title-slide slide level1 center">
 <h1>Partitioning</h1>
 <ul>
-<li>Data is saved in files partitioned by 1 or more variables in the data</li>
+<li>Data is saved in directories representing columns in the data</li>
 </ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="st">"~/data/nyc-taxi/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>~/data/nyc-taxi/
-├── year=2012
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2013
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2014
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2015
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2016
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2017
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2018
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2019
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2020
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-├── year=2021
-│   ├── month=1
-│   │   └── part-0.parquet
-│   ├── month=10
-│   │   └── part-0.parquet
-│   ├── month=11
-│   │   └── part-0.parquet
-│   ├── month=12
-│   │   └── part-0.parquet
-│   ├── month=2
-│   │   └── part-0.parquet
-│   ├── month=3
-│   │   └── part-0.parquet
-│   ├── month=4
-│   │   └── part-0.parquet
-│   ├── month=5
-│   │   └── part-0.parquet
-│   ├── month=6
-│   │   └── part-0.parquet
-│   ├── month=7
-│   │   └── part-0.parquet
-│   ├── month=8
-│   │   └── part-0.parquet
-│   └── month=9
-│       └── part-0.parquet
-└── year=2022
-    ├── month=1
-    │   └── part-0.parquet
-    └── month=2
-        └── part-0.parquet</code></pre>
-</div>
-</div>
-</section>
+
+<img data-src="images/partitions.png" class="r-stretch"></section>
 <section id="what-variables-should-we-use-for-partitioning" class="slide level2">
 <h2>What variables should we use for partitioning?</h2>
 <p>What happens if we just partition by year and not month?</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a>nyc_taxi <span class="sc">|&gt;</span></span>
-<span id="cb37-2"><a href="#cb37-2"></a>  <span class="fu">write_dataset</span>(<span class="st">"~/data/nyc-taxi-year"</span>, <span class="at">partitioning =</span> <span class="st">"year"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a>nyc_taxi <span class="sc">|&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a>  <span class="fu">write_dataset</span>(<span class="st">"~/data/nyc-taxi-year"</span>, <span class="at">partitioning =</span> <span class="st">"year"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Let’s compare!</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a>year_part <span class="ot">&lt;-</span> <span class="fu">open_dataset</span>(<span class="st">"~/data/nyc-taxi-year"</span>)</span>
-<span id="cb38-2"><a href="#cb38-2"></a>year_month_part <span class="ot">&lt;-</span> <span class="fu">open_dataset</span>(<span class="st">"~/data/nyc-taxi"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a>year_part <span class="ot">&lt;-</span> <span class="fu">open_dataset</span>(<span class="st">"~/data/nyc-taxi-year"</span>)</span>
+<span id="cb36-2"><a href="#cb36-2"></a>year_month_part <span class="ot">&lt;-</span> <span class="fu">open_dataset</span>(<span class="st">"~/data/nyc-taxi"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="partitioned-by-year" class="slide level2">
 <h2>Partitioned by year</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a><span class="fu">tic</span>()</span>
-<span id="cb39-2"><a href="#cb39-2"></a> year_part <span class="sc">|&gt;</span></span>
-<span id="cb39-3"><a href="#cb39-3"></a> <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="dv">2014</span><span class="sc">:</span><span class="dv">2017</span>) <span class="sc">|&gt;</span></span>
-<span id="cb39-4"><a href="#cb39-4"></a>  <span class="fu">group_by</span>(year, month) <span class="sc">|&gt;</span></span>
-<span id="cb39-5"><a href="#cb39-5"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb39-6"><a href="#cb39-6"></a>    <span class="at">all_trips =</span> <span class="fu">n</span>(),</span>
-<span id="cb39-7"><a href="#cb39-7"></a>    <span class="at">shared_trips =</span> <span class="fu">sum</span>(passenger_count <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb39-8"><a href="#cb39-8"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb39-9"><a href="#cb39-9"></a>  <span class="fu">mutate</span>(<span class="at">pct_shared =</span> shared_trips <span class="sc">/</span> all_trips <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb39-10"><a href="#cb39-10"></a>  <span class="fu">collect</span>()</span>
-<span id="cb39-11"><a href="#cb39-11"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a><span class="fu">tic</span>()</span>
+<span id="cb37-2"><a href="#cb37-2"></a> year_part <span class="sc">|&gt;</span></span>
+<span id="cb37-3"><a href="#cb37-3"></a> <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="dv">2014</span><span class="sc">:</span><span class="dv">2017</span>) <span class="sc">|&gt;</span></span>
+<span id="cb37-4"><a href="#cb37-4"></a>  <span class="fu">group_by</span>(year, month) <span class="sc">|&gt;</span></span>
+<span id="cb37-5"><a href="#cb37-5"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb37-6"><a href="#cb37-6"></a>    <span class="at">all_trips =</span> <span class="fu">n</span>(),</span>
+<span id="cb37-7"><a href="#cb37-7"></a>    <span class="at">shared_trips =</span> <span class="fu">sum</span>(passenger_count <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb37-8"><a href="#cb37-8"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb37-9"><a href="#cb37-9"></a>  <span class="fu">mutate</span>(<span class="at">pct_shared =</span> shared_trips <span class="sc">/</span> all_trips <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb37-10"><a href="#cb37-10"></a>  <span class="fu">collect</span>()</span>
+<span id="cb37-11"><a href="#cb37-11"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <blockquote>
 <p>8.338 sec elapsed</p>
@@ -1185,17 +929,17 @@ Call collect() first to pull data into R.</code></pre>
 <section id="partitioned-by-both-month-and-year" class="slide level2">
 <h2>Partitioned by both month and year</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a><span class="fu">tic</span>()</span>
-<span id="cb40-2"><a href="#cb40-2"></a> year_month_part <span class="sc">|&gt;</span></span>
-<span id="cb40-3"><a href="#cb40-3"></a> <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="dv">2014</span><span class="sc">:</span><span class="dv">2017</span>) <span class="sc">|&gt;</span></span>
-<span id="cb40-4"><a href="#cb40-4"></a>  <span class="fu">group_by</span>(year, month) <span class="sc">|&gt;</span></span>
-<span id="cb40-5"><a href="#cb40-5"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb40-6"><a href="#cb40-6"></a>    <span class="at">all_trips =</span> <span class="fu">n</span>(),</span>
-<span id="cb40-7"><a href="#cb40-7"></a>    <span class="at">shared_trips =</span> <span class="fu">sum</span>(passenger_count <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb40-8"><a href="#cb40-8"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb40-9"><a href="#cb40-9"></a>  <span class="fu">mutate</span>(<span class="at">pct_shared =</span> shared_trips <span class="sc">/</span> all_trips <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb40-10"><a href="#cb40-10"></a>  <span class="fu">collect</span>()</span>
-<span id="cb40-11"><a href="#cb40-11"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="fu">tic</span>()</span>
+<span id="cb38-2"><a href="#cb38-2"></a> year_month_part <span class="sc">|&gt;</span></span>
+<span id="cb38-3"><a href="#cb38-3"></a> <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="dv">2014</span><span class="sc">:</span><span class="dv">2017</span>) <span class="sc">|&gt;</span></span>
+<span id="cb38-4"><a href="#cb38-4"></a>  <span class="fu">group_by</span>(year, month) <span class="sc">|&gt;</span></span>
+<span id="cb38-5"><a href="#cb38-5"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb38-6"><a href="#cb38-6"></a>    <span class="at">all_trips =</span> <span class="fu">n</span>(),</span>
+<span id="cb38-7"><a href="#cb38-7"></a>    <span class="at">shared_trips =</span> <span class="fu">sum</span>(passenger_count <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb38-8"><a href="#cb38-8"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb38-9"><a href="#cb38-9"></a>  <span class="fu">mutate</span>(<span class="at">pct_shared =</span> shared_trips <span class="sc">/</span> all_trips <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb38-10"><a href="#cb38-10"></a>  <span class="fu">collect</span>()</span>
+<span id="cb38-11"><a href="#cb38-11"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <blockquote>
 <p>5.621 sec elapsed</p>

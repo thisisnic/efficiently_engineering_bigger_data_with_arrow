@@ -288,6 +288,10 @@ fare_by_year |>
   collect()
 ```
 
+## DuckDB
+
+![](images/dplyr-arrow-duckdb.png)
+
 ## Window functions - via duckdb
 
 <!-- -->
@@ -407,11 +411,10 @@ toc()
 
 # Partitioning
 
-- Data is saved in files partitioned by 1 or more variables in the data
+- Data is saved in directories representing columns in the data
 
-```{r}
-fs::dir_tree("~/data/nyc-taxi/")
-```
+![](images/partitions.png)
+
 
 ## What variables should we use for partitioning?
 
