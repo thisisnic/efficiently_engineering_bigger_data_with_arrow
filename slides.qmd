@@ -9,7 +9,8 @@ engine: knitr
 
 # Overview
 
--   Working with larger-than-memory data in R with Arrow
+-   Demo of working with larger-than-memory data in R with Arrow
+-   What is Arrow?
 -   Using the dplyr API with arrow
 -   Using Parquet format for better performance
 -   Dataset partitioning
@@ -17,6 +18,12 @@ engine: knitr
 ## What is larger-than-memory data?
 
 ![Source: July 2023 data from https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-to-Steam](images/larger-than-memory.png)
+
+## Goals
+
+Avoiding these! But...don't worry!
+
+![](images/segfault.png)
 
 ## NYC Taxi Dataset
 
@@ -91,8 +98,7 @@ toc()
 
 > 6.077 sec elapsed
 
-## What is Apache Arrow?
-
+# What is Apache Arrow?
 
 > A multi-language toolbox for accelerated data interchange and in-memory processing
 
@@ -133,9 +139,49 @@ The contiguous columnar layout enables vectorization using the latest SIMD (Sing
 ![](images/arrow-r-pkg.png){.absolute top="0" left="300" width="700" height="900"}
 
 
-## dplyr API in arrow
+# dplyr API in arrow
 
 ![(Danielle Navarro, 2022 - https://arrow-user2022.netlify.app). CC BY-SA 4.0](images/dplyr-backend.png)
+
+## arrow supports complex expressions
+
+Bindings to functions from lubridate, stringr, and others
+
+```{r}
+#| label: bindings
+nyc_taxi |>
+  mutate(
+    pickup_morning = lubridate::am(pickup_datetime), 
+    across(ends_with("amount"), list(pounds = ~.x * 0.79)) 
+  ) |>
+  filter(
+    stringr::str_ends(vendor_name, "S"),
+    year == 2019,
+    month == 9
+  ) |>
+  select(
+    pickup_morning,
+    contains("amount"),
+    everything()
+  ) |>
+  head() |>
+  collect()
+```
+
+## head to the docs!
+
+```{r}
+#| label: get-help
+#| eval: false
+
+?`arrow-dplyr`
+```
+
+{{< video helppage.mp4 >}}
+
+## DuckDB
+
+![](images/dplyr-arrow-duckdb.png)
 
 ## Arrow Datasets
 
@@ -143,175 +189,11 @@ The contiguous columnar layout enables vectorization using the latest SIMD (Sing
 -   Can consist of multiple files
 -   Lazy evaluation
 
-![Image source: Navarro, Danielle. 2022. “Unpacking Arrow Datasets.” November 30, 2022. https://blog.djnavarro.net/posts/2022-11-30_unpacking-arrow-datasets.](images/datasets.png)
-
 ## Arrow Dataset Objects
 
-```{r}
-nyc_taxi
-```
-
-## Constructing a query
-
-```{r}
-#| label: shared-rides
-library(dplyr)
-shared_rides <- nyc_taxi |>
-  group_by(year) |>
-  summarize(
-    all_trips = n(),
-    shared_trips = sum(passenger_count > 1, na.rm = TRUE)
-  ) |>
-  mutate(pct_shared = shared_trips / all_trips * 100) 
-
-class(shared_rides)
-```
-## arrow dplyr queries
-
-- query has been constructed but not evaluated
-- nothing has been pulled into memory
-- call `collect()` to pull data into R session
-
-## Tips for working with large datasets
-
-Task: Convert fares to GBP (£)
-
-```{r}
-#| label: fares-gbp
-
-fares_pounds <- nyc_taxi |>
-  filter(year %in% 2019:2021) |>
-  mutate(
-    fare_amount_pounds = fare_amount * 0.79
-  ) |>
-  select(fare_amount, fare_amount_pounds)
-```
-
-## Use `nrow()` to see how many rows
-```{r}
-#| label: fares-gbp-nrow
-
-fares_pounds |>
-  nrow()
-```
-
-139 million rows of data
-
-## Use `head()` and `dplyr::collect()` to preview results
-
-```{r}
-#| label: fares-gbp-head
-fares_pounds |>
-  head() |>
-  collect()
-```
-
-## dplyr bindings
-
-![](images/dplyr_implemented.png)
-
-## What if a binding doesn't exist?
-
-First three trips in the dataset in 2021 where distance \> 100 miles
-
-```{r}
-#| label: no-slice
-#| error: true
-
-long_rides_2021 <- nyc_taxi |>
-  filter(year == 2021 & trip_distance > 100) |>
-  select(pickup_datetime, year, trip_distance)
-
-long_rides_2021 |>
-  slice(1:3)
-```
-## head to the docs!
-
-```{r}
-#| label: get-help
-#| eval: false
-
-?arrow-dplyr
-```
-
-
-## A different function
-
-```{r}
-#| label: slice-max
-
-long_rides_2021 |>
-  slice_head(n = 3) |>
-  collect()
-```
-
-## Or call `collect()` first
-
-```{r}
-#| label: collect-first
-
-long_rides_2021 |>
-  collect() |>
-  slice(1:3)
-```
-
-# Window functions
-
-## What are window functions?
-
--   calculations within groups
-
-## Grouped summaries
-
-```{r}
-#| label: grouped-summaries
-
-fare_by_year <- nyc_taxi |>
-  filter(year %in% 2021:2022) |>
-  select(year, fare_amount)
-
-fare_by_year |>
-  group_by(year) |>
-  summarise(mean_fare = mean(fare_amount)) |> 
-  collect()
-```
-
-## Window functions
-
-```{r}
-#| label: window-fail
-#| error: true
-
-fare_by_year |>
-  group_by(year) |>
-  mutate(mean_fare = mean(fare_amount)) |> 
-  collect()
-```
-
-## DuckDB
-
-![](images/dplyr-arrow-duckdb.png)
-
-## Window functions - via duckdb
-
-<!-- -->
-
-```{r}
-#| label: window-duckdb
-library(duckdb)
-
-fare_by_year |>
-  group_by(year) |>
-  to_duckdb() |>
-  mutate(mean_fare = mean(fare_amount)) |> 
-  to_arrow() |>
-  arrange(desc(fare_amount)) |>
-  collect()
-```
+![](images/nyc_taxi_dataset.png)
 
 # Parquet
-
-## Parquet
 
 ![](images/parquet.png)
 
@@ -319,11 +201,6 @@ fare_by_year |>
 -   rich type system & stores the metadata along with the data
 -   "column-oriented" == better performance over CSV's row-by-row
 -   "row-chunked" == work on different parts of the file at the same time or skip some chunks all together
-
-::: notes
--   efficient encodings to keep file size down, and supports file compression, less data to move from disk to memory
--   CSV has no info about data types, inferred by each parser
-:::
 
 ## Let's compare!
 
@@ -483,20 +360,6 @@ toc()
 2.  Store files in Parquet format for better performance
 3.  Partition data based on your analysis workflows
 
-```{=html}
-<!-- Need to add in all of Danielle's acknowledgements
-
-
-
-[![Image from "Larger-Than-Memory Data Workflows with Apache Arrow" by Danielle Navarro is licensed under CC BY-ND 4.0](https://github.com/djnavarro/arrow-user2022/blob/main/img/arrow-libraries-structure.png?raw=true)](https://arrow-user2022.netlify.app/)
-
-## The arrow R package
-
-[![Image from "Larger-Than-Memory Data Workflows with Apache Arrow" by Danielle Navarro is licensed under CC BY-ND 4.0](https://github.com/djnavarro/arrow-user2022/blob/main/img/dplyr-backend.png?raw=true)](https://arrow-user2022.netlify.app/)
-
--->
-```
-
 # Resources
 
 ## Docs
@@ -511,16 +374,10 @@ toc()
 
 [![https://github.com/apache/arrow/blob/main/r/cheatsheet/arrow-cheatsheet.pdf](https://arrow.apache.org/img/20220427-arrow-r-cheatsheet-thumbnail.png)](https://github.com/apache/arrow/blob/master/r/cheatsheet/arrow-cheatsheet.pdf)
 
-```{=html}
-<!-- 
-The Arrow for R cheatsheet is intended to be an easy-to-scan introduction to the Arrow R package and Arrow data structures, with getting started sections on some of the package’s main functionality. The cheatsheet includes introductory snippets on using Arrow to read and work with larger-than-memory multi-file data sets, sending and receiving data with Flight, reading data from cloud storage without downloading the data first, and more. The Arrow for R cheatsheet also directs users to the full Arrow for R package documentation and articles and the Arrow Cookbook, both full of code examples and recipes to support users build their Arrow-based data workflows. Finally, the cheatsheet debuts one of the first uses of the hot-off-the-presses Arrow hex sticker, recently made available as part of the Apache Arrow visual identity guidance.
--->
-```
-## UseR! 2022 Tutorial
+## posit::conf 2023 tutorial
 
-[![https://arrow-user2022.netlify.app/](images/usertutorial.png)](https://arrow-user2022.netlify.app/)
+[![https://posit-conf-2023.github.io/arrow/](images/posit-workshop.png)](https://posit-conf-2023.github.io/arrow/)
 
-<!-- Also mention mini taxi dataset -->
 
 ## Awesome Arrow
 
