@@ -1,0 +1,338 @@
+[
+  {
+    "objectID": "slides.html#what-is-larger-than-memory-data",
+    "href": "slides.html#what-is-larger-than-memory-data",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "What is larger-than-memory data?",
+    "text": "What is larger-than-memory data?\n\nSource: July 2023 data from https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-to-Steam"
+  },
+  {
+    "objectID": "slides.html#nyc-taxi-dataset",
+    "href": "slides.html#nyc-taxi-dataset",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "NYC Taxi Dataset",
+    "text": "NYC Taxi Dataset\n\n\nhttps://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"
+  },
+  {
+    "objectID": "slides.html#nyc-taxi-data",
+    "href": "slides.html#nyc-taxi-data",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "NYC Taxi Data",
+    "text": "NYC Taxi Data\n\nSubset of the NYC Taxi data set on S3 (~40GBs on disk)\n\n\nlibrary(arrow)\nlibrary(dplyr)\n\nopen_dataset(\"s3://voltrondata-labs-datasets/nyc-taxi\") |&gt;\n  filter(year %in% 2012:2021) |&gt;\n  write_dataset(\"data/nyc-taxi\", partitioning = c(\"year\", \"month\"))"
+  },
+  {
+    "objectID": "slides.html#demo-1",
+    "href": "slides.html#demo-1",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Demo 1",
+    "text": "Demo 1"
+  },
+  {
+    "objectID": "slides.html#nyc-taxi-dataset-1",
+    "href": "slides.html#nyc-taxi-dataset-1",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "NYC Taxi Dataset",
+    "text": "NYC Taxi Dataset\n\nlibrary(arrow)\nnyc_taxi &lt;- open_dataset(\"~/data/nyc-taxi/\")\n\nnyc_taxi |&gt; \n  nrow()\n\n[1] 1155795912\n\n\n\n1.15 billion rows!"
+  },
+  {
+    "objectID": "slides.html#nyc-taxi-dataset-a-dplyr-pipeline",
+    "href": "slides.html#nyc-taxi-dataset-a-dplyr-pipeline",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "NYC Taxi Dataset: A {dplyr} pipeline",
+    "text": "NYC Taxi Dataset: A {dplyr} pipeline\n\nlibrary(dplyr)\nlibrary(tictoc)\n\ntic()\nnyc_taxi |&gt;\n  group_by(year) |&gt;\n  summarise(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) |&gt;\n  collect()\ntoc()\n\n\n6.077 sec elapsed"
+  },
+  {
+    "objectID": "slides.html#what-is-apache-arrow",
+    "href": "slides.html#what-is-apache-arrow",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "What is Apache Arrow?",
+    "text": "What is Apache Arrow?\n\nA multi-language toolbox for accelerated data interchange and in-memory processing\n\n\nhttps://arrow.apache.org/overview/"
+  },
+  {
+    "objectID": "slides.html#apache-arrow-specification",
+    "href": "slides.html#apache-arrow-specification",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Apache Arrow Specification",
+    "text": "Apache Arrow Specification\nIn-memory columnar format: a standardized, language-agnostic specification for representing structured, table-like data sets in-memory."
+  },
+  {
+    "objectID": "slides.html#a-multi-language-toolbox",
+    "href": "slides.html#a-multi-language-toolbox",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "A Multi-Language Toolbox",
+    "text": "A Multi-Language Toolbox"
+  },
+  {
+    "objectID": "slides.html#accelerated-data-interchange",
+    "href": "slides.html#accelerated-data-interchange",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Accelerated Data Interchange",
+    "text": "Accelerated Data Interchange"
+  },
+  {
+    "objectID": "slides.html#accelerated-in-memory-processing",
+    "href": "slides.html#accelerated-in-memory-processing",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Accelerated In-Memory Processing",
+    "text": "Accelerated In-Memory Processing\nArrow’s Columnar Format is Fast\n\n\nThe contiguous columnar layout enables vectorization using the latest SIMD (Single Instruction, Multiple Data) operations included in modern processors."
+  },
+  {
+    "objectID": "slides.html#arrow",
+    "href": "slides.html#arrow",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "arrow 📦",
+    "text": "arrow 📦"
+  },
+  {
+    "objectID": "slides.html#dplyr-api-in-arrow",
+    "href": "slides.html#dplyr-api-in-arrow",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "dplyr API in arrow",
+    "text": "dplyr API in arrow\n\n(Danielle Navarro, 2022 - https://arrow-user2022.netlify.app). CC BY-SA 4.0"
+  },
+  {
+    "objectID": "slides.html#arrow-datasets",
+    "href": "slides.html#arrow-datasets",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Arrow Datasets",
+    "text": "Arrow Datasets\n\nSimilar to database connections\nCan consist of multiple files\nLazy evaluation\n\n\nImage source: Navarro, Danielle. 2022. “Unpacking Arrow Datasets.” November 30, 2022. https://blog.djnavarro.net/posts/2022-11-30_unpacking-arrow-datasets."
+  },
+  {
+    "objectID": "slides.html#arrow-dataset-objects",
+    "href": "slides.html#arrow-dataset-objects",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Arrow Dataset Objects",
+    "text": "Arrow Dataset Objects\n\nnyc_taxi\n\nFileSystemDataset with 122 Parquet files\nvendor_name: string\npickup_datetime: timestamp[ms]\ndropoff_datetime: timestamp[ms]\npassenger_count: int64\ntrip_distance: double\npickup_longitude: double\npickup_latitude: double\nrate_code: string\nstore_and_fwd: string\ndropoff_longitude: double\ndropoff_latitude: double\npayment_type: string\nfare_amount: double\nextra: double\nmta_tax: double\ntip_amount: double\ntolls_amount: double\ntotal_amount: double\nimprovement_surcharge: double\ncongestion_surcharge: double\npickup_location_id: int64\ndropoff_location_id: int64\nyear: int32\nmonth: int32"
+  },
+  {
+    "objectID": "slides.html#constructing-a-query",
+    "href": "slides.html#constructing-a-query",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Constructing a query",
+    "text": "Constructing a query\n\nlibrary(dplyr)\nshared_rides &lt;- nyc_taxi |&gt;\n  group_by(year) |&gt;\n  summarize(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) \n\nclass(shared_rides)\n\n[1] \"arrow_dplyr_query\""
+  },
+  {
+    "objectID": "slides.html#arrow-dplyr-queries",
+    "href": "slides.html#arrow-dplyr-queries",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "arrow dplyr queries",
+    "text": "arrow dplyr queries\n\nquery has been constructed but not evaluated\nnothing has been pulled into memory\ncall collect() to pull data into R session"
+  },
+  {
+    "objectID": "slides.html#tips-for-working-with-large-datasets",
+    "href": "slides.html#tips-for-working-with-large-datasets",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Tips for working with large datasets",
+    "text": "Tips for working with large datasets\nTask: Convert fares to GBP (£)\n\nfares_pounds &lt;- nyc_taxi |&gt;\n  filter(year %in% 2019:2021) |&gt;\n  mutate(\n    fare_amount_pounds = fare_amount * 0.79\n  ) |&gt;\n  select(fare_amount, fare_amount_pounds)"
+  },
+  {
+    "objectID": "slides.html#use-nrow-to-see-how-many-rows",
+    "href": "slides.html#use-nrow-to-see-how-many-rows",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Use nrow() to see how many rows",
+    "text": "Use nrow() to see how many rows\n\nfares_pounds |&gt;\n  nrow()\n\n[1] 139943277\n\n\n139 million rows of data"
+  },
+  {
+    "objectID": "slides.html#use-head-and-dplyrcollect-to-preview-results",
+    "href": "slides.html#use-head-and-dplyrcollect-to-preview-results",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Use head() and dplyr::collect() to preview results",
+    "text": "Use head() and dplyr::collect() to preview results\n\nfares_pounds |&gt;\n  head() |&gt;\n  collect()\n\n# A tibble: 6 × 2\n  fare_amount fare_amount_pounds\n        &lt;dbl&gt;              &lt;dbl&gt;\n1        25.5              20.1 \n2        12                 9.48\n3        20                15.8 \n4         7                 5.53\n5         5                 3.95\n6        25.5              20.1"
+  },
+  {
+    "objectID": "slides.html#dplyr-bindings",
+    "href": "slides.html#dplyr-bindings",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "dplyr bindings",
+    "text": "dplyr bindings"
+  },
+  {
+    "objectID": "slides.html#what-if-a-binding-doesnt-exist",
+    "href": "slides.html#what-if-a-binding-doesnt-exist",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "What if a binding doesn’t exist?",
+    "text": "What if a binding doesn’t exist?\nFirst three trips in the dataset in 2021 where distance &gt; 100 miles\n\nlong_rides_2021 &lt;- nyc_taxi |&gt;\n  filter(year == 2021 & trip_distance &gt; 100) |&gt;\n  select(pickup_datetime, year, trip_distance)\n\nlong_rides_2021 |&gt;\n  slice(1:3)\n\nError in UseMethod(\"slice\"): no applicable method for 'slice' applied to an object of class \"arrow_dplyr_query\""
+  },
+  {
+    "objectID": "slides.html#head-to-the-docs",
+    "href": "slides.html#head-to-the-docs",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "head to the docs!",
+    "text": "head to the docs!\n\n?arrow-dplyr"
+  },
+  {
+    "objectID": "slides.html#a-different-function",
+    "href": "slides.html#a-different-function",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "A different function",
+    "text": "A different function\n\nlong_rides_2021 |&gt;\n  slice_head(n = 3) |&gt;\n  collect()\n\n# A tibble: 3 × 3\n  pickup_datetime      year trip_distance\n  &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;\n1 2021-01-03 09:01:26  2021          216.\n2 2021-01-03 11:36:52  2021          268.\n3 2021-01-06 07:27:55  2021          271."
+  },
+  {
+    "objectID": "slides.html#or-call-collect-first",
+    "href": "slides.html#or-call-collect-first",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Or call collect() first",
+    "text": "Or call collect() first\n\nlong_rides_2021 |&gt;\n  collect() |&gt;\n  slice(1:3)\n\n# A tibble: 3 × 3\n  pickup_datetime      year trip_distance\n  &lt;dttm&gt;              &lt;int&gt;         &lt;dbl&gt;\n1 2021-01-06 07:27:55  2021          271.\n2 2021-01-03 09:01:26  2021          216.\n3 2021-01-03 11:36:52  2021          268."
+  },
+  {
+    "objectID": "slides.html#what-are-window-functions",
+    "href": "slides.html#what-are-window-functions",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "What are window functions?",
+    "text": "What are window functions?\n\ncalculations within groups"
+  },
+  {
+    "objectID": "slides.html#grouped-summaries",
+    "href": "slides.html#grouped-summaries",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Grouped summaries",
+    "text": "Grouped summaries\n\nfare_by_year &lt;- nyc_taxi |&gt;\n  filter(year %in% 2021:2022) |&gt;\n  select(year, fare_amount)\n\nfare_by_year |&gt;\n  group_by(year) |&gt;\n  summarise(mean_fare = mean(fare_amount)) |&gt; \n  collect()\n\n# A tibble: 2 × 2\n   year mean_fare\n  &lt;int&gt;     &lt;dbl&gt;\n1  2021      13.5\n2  2022      13.0"
+  },
+  {
+    "objectID": "slides.html#window-functions-1",
+    "href": "slides.html#window-functions-1",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Window functions",
+    "text": "Window functions\n\nfare_by_year |&gt;\n  group_by(year) |&gt;\n  mutate(mean_fare = mean(fare_amount)) |&gt; \n  collect()\n\nError: window functions not currently supported in Arrow\nCall collect() first to pull data into R."
+  },
+  {
+    "objectID": "slides.html#duckdb",
+    "href": "slides.html#duckdb",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "DuckDB",
+    "text": "DuckDB"
+  },
+  {
+    "objectID": "slides.html#window-functions---via-duckdb",
+    "href": "slides.html#window-functions---via-duckdb",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Window functions - via duckdb",
+    "text": "Window functions - via duckdb\n\n\nlibrary(duckdb)\n\nfare_by_year |&gt;\n  group_by(year) |&gt;\n  to_duckdb() |&gt;\n  mutate(mean_fare = mean(fare_amount)) |&gt; \n  to_arrow() |&gt;\n  arrange(desc(fare_amount)) |&gt;\n  collect()\n\n# A tibble: 36,345,864 × 3\n    year fare_amount mean_fare\n   &lt;int&gt;       &lt;dbl&gt;     &lt;dbl&gt;\n 1  2021     818283.      13.5\n 2  2022     401092.      13.0\n 3  2021     398466.      13.5\n 4  2021     395854.      13.5\n 5  2021       6965       13.5\n 6  2021       6960.      13.5\n 7  2021       6010       13.5\n 8  2021       5954       13.5\n 9  2021       4969       13.5\n10  2021       3555.      13.5\n# ℹ 36,345,854 more rows"
+  },
+  {
+    "objectID": "slides.html#parquet-1",
+    "href": "slides.html#parquet-1",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Parquet",
+    "text": "Parquet\n\n\nusually smaller than equivalent CSV file\nrich type system & stores the metadata along with the data\n“column-oriented” == better performance over CSV’s row-by-row\n“row-chunked” == work on different parts of the file at the same time or skip some chunks all together\n\n\n\nefficient encodings to keep file size down, and supports file compression, less data to move from disk to memory\nCSV has no info about data types, inferred by each parser"
+  },
+  {
+    "objectID": "slides.html#lets-compare",
+    "href": "slides.html#lets-compare",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Let’s compare!",
+    "text": "Let’s compare!\n\nnyc_taxi |&gt;\n  write_dataset(\n    \"~/data/nyc-taxi-csv\",\n    format = \"csv\", \n    partitioning = c(\"year\", \"month\")\n  )"
+  },
+  {
+    "objectID": "slides.html#comparing-size-on-disk",
+    "href": "slides.html#comparing-size-on-disk",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Comparing size on disk",
+    "text": "Comparing size on disk\n\ntotal_file_size &lt;- function(path){\n  all_files_in_dir &lt;- fs::dir_ls(path, recurse = TRUE)\n  sum(fs::file_size(all_files_in_dir))\n}"
+  },
+  {
+    "objectID": "slides.html#how-much-space-do-the-csv-and-parquet-versions-of-the-same-files-take-up-on-disk",
+    "href": "slides.html#how-much-space-do-the-csv-and-parquet-versions-of-the-same-files-take-up-on-disk",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "How much space do the CSV and Parquet versions of the same files take up on disk?",
+    "text": "How much space do the CSV and Parquet versions of the same files take up on disk?\n\n# Parquet files\ntotal_file_size(\"~/data/nyc-taxi/\")\n\n37.5G\n\n\n\n# CSV files\ntotal_file_size(\"~/data/nyc-taxi-csv/\")\n\n158G"
+  },
+  {
+    "objectID": "slides.html#comparing-analysis-speed---parquet",
+    "href": "slides.html#comparing-analysis-speed---parquet",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Comparing analysis speed - Parquet",
+    "text": "Comparing analysis speed - Parquet\n\n# Parquet\ntic()\nopen_dataset(\"~/data/nyc-taxi\") |&gt;\n  filter(year %in% 2014:2017) |&gt;\n  group_by(year) |&gt;\n  summarise(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) |&gt;\n  collect()\ntoc()\n\n\n2.54 sec elapsed"
+  },
+  {
+    "objectID": "slides.html#comparing-analysis-speed---csv",
+    "href": "slides.html#comparing-analysis-speed---csv",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Comparing analysis speed - CSV",
+    "text": "Comparing analysis speed - CSV\n\n#CSV\ntic()\nopen_dataset(\"~/data/nyc-taxi-csv\", format = \"csv\") |&gt;\n  filter(year %in% 2014:2017) |&gt;\n  group_by(year) |&gt;\n  summarise(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) |&gt;\n  collect()\ntoc()\n\n\n49.788 sec elapsed"
+  },
+  {
+    "objectID": "slides.html#parquet-file-metadata",
+    "href": "slides.html#parquet-file-metadata",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Parquet file metadata",
+    "text": "Parquet file metadata\n\nSource: https://parquet.apache.org/docs/file-format/metadata/"
+  },
+  {
+    "objectID": "slides.html#what-variables-should-we-use-for-partitioning",
+    "href": "slides.html#what-variables-should-we-use-for-partitioning",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "What variables should we use for partitioning?",
+    "text": "What variables should we use for partitioning?\nWhat happens if we just partition by year and not month?\n\nnyc_taxi |&gt;\n  write_dataset(\"~/data/nyc-taxi-year\", partitioning = \"year\")\n\nLet’s compare!\n\nyear_part &lt;- open_dataset(\"~/data/nyc-taxi-year\")\nyear_month_part &lt;- open_dataset(\"~/data/nyc-taxi\")"
+  },
+  {
+    "objectID": "slides.html#partitioned-by-year",
+    "href": "slides.html#partitioned-by-year",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Partitioned by year",
+    "text": "Partitioned by year\n\ntic()\n year_part |&gt;\n filter(year %in% 2014:2017) |&gt;\n  group_by(year, month) |&gt;\n  summarise(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) |&gt;\n  collect()\ntoc()\n\n\n8.338 sec elapsed"
+  },
+  {
+    "objectID": "slides.html#partitioned-by-both-month-and-year",
+    "href": "slides.html#partitioned-by-both-month-and-year",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Partitioned by both month and year",
+    "text": "Partitioned by both month and year\n\ntic()\n year_month_part |&gt;\n filter(year %in% 2014:2017) |&gt;\n  group_by(year, month) |&gt;\n  summarise(\n    all_trips = n(),\n    shared_trips = sum(passenger_count &gt; 1, na.rm = TRUE)\n  ) |&gt;\n  mutate(pct_shared = shared_trips / all_trips * 100) |&gt;\n  collect()\ntoc()\n\n\n5.621 sec elapsed"
+  },
+  {
+    "objectID": "slides.html#art-science-of-partitioning",
+    "href": "slides.html#art-science-of-partitioning",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Art & Science of Partitioning",
+    "text": "Art & Science of Partitioning\n\nNumber of partitions also important (Arrow reads the metadata of each file)\navoid files &lt; 20MB and &gt; 2GB\navoid &gt; 10,000 files (🤯)\npartition on variables used in filter()"
+  },
+  {
+    "objectID": "slides.html#docs",
+    "href": "slides.html#docs",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Docs",
+    "text": "Docs\n\nhttps://arrow.apache.org/docs/r/"
+  },
+  {
+    "objectID": "slides.html#cookbook",
+    "href": "slides.html#cookbook",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Cookbook",
+    "text": "Cookbook\n\nhttps://arrow.apache.org/cookbook/r/"
+  },
+  {
+    "objectID": "slides.html#cheatsheet",
+    "href": "slides.html#cheatsheet",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Cheatsheet",
+    "text": "Cheatsheet\n\n\nhttps://github.com/apache/arrow/blob/main/r/cheatsheet/arrow-cheatsheet.pdf"
+  },
+  {
+    "objectID": "slides.html#user-2022-tutorial",
+    "href": "slides.html#user-2022-tutorial",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "UseR! 2022 Tutorial",
+    "text": "UseR! 2022 Tutorial\n\n\nhttps://arrow-user2022.netlify.app/"
+  },
+  {
+    "objectID": "slides.html#awesome-arrow",
+    "href": "slides.html#awesome-arrow",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Awesome Arrow",
+    "text": "Awesome Arrow\n\nhttps://github.com/thisisnic/awesome-arrow-r"
+  },
+  {
+    "objectID": "slides.html#open-an-issue",
+    "href": "slides.html#open-an-issue",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Open an issue",
+    "text": "Open an issue\n\nhttps://github.com/apache/arrow/issues/"
+  },
+  {
+    "objectID": "slides.html#make-a-pr",
+    "href": "slides.html#make-a-pr",
+    "title": "Efficiently Engineering Bigger Data with Arrow",
+    "section": "Make a PR!",
+    "text": "Make a PR!\n\ndocs\ncookbook\ncode"
+  }
+]
