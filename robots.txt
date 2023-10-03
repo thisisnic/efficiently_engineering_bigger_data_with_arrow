@@ -1,0 +1,1 @@
+Sitemap: https://thisisnic.github.io/efficiently_engineering_bigger_data_with_arrow/sitemap.xml
